@@ -168,6 +168,11 @@ export const PROVIDERS = {
     format: "openai",
     headers: {}
   },
+  "volcengine-ark-agent": {
+    baseUrl: "https://ark.cn-beijing.volces.com/api/plan/v3/chat/completions",
+    format: "openai",
+    headers: {}
+  },
   byteplus: {
     baseUrl: "https://ark.ap-southeast.bytepluses.com/api/coding/v3/chat/completions",
     format: "openai",

@@ -325,6 +325,7 @@ export async function POST(request) {
           break;
         }
         case "volcengine-ark":
+        case "volcengine-ark-agent":
         case "byteplus": {
           const res = await fetch(PROVIDER_ENDPOINTS[provider], {
             method: "POST",
