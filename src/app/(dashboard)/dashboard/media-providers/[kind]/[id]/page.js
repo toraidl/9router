@@ -45,6 +45,17 @@ const DEFAULT_RESPONSE_EXAMPLE = `{
 const CLOUDFLARE_TEST_IMAGE_URL = "https://pub-1fb693cb11cc46b2b2f656f51e015a2c.r2.dev/dog.png";
 const CLOUDFLARE_TEST_MASK_URL = "https://pub-1fb693cb11cc46b2b2f656f51e015a2c.r2.dev/dog-mask.png";
 
+// Valid SenseNova T2I sizes (from API response)
+const SENSENOVA_SIZE_OPTIONS = [
+  "auto", "1024x1024",
+  "1664x2496", "2496x1664",
+  "1760x2368", "2368x1760",
+  "1824x2272", "2272x1824",
+  "2720x1536", "1536x2720",
+  "2752x1536", "1536x2752",
+  "1216x2752", "2752x1216",
+];
+
 function getImageEditDefaults(providerId, modelId) {
   if (providerId !== "cloudflare-ai") return {};
   if (modelId === "@cf/runwayml/stable-diffusion-v1-5-img2img") {
@@ -937,9 +948,14 @@ function GenericExampleCard({ providerId, kind }) {
   const [input, setInput] = useState(safeExConfig.defaultInput || "");
   const [refImage, setRefImage] = useState("");
   const [maskImage, setMaskImage] = useState("");
-  const [extraValues, setExtraValues] = useState(() =>
-    (safeExConfig.extraFields || []).reduce((acc, f) => { acc[f.key] = f.default ?? ""; return acc; }, {})
-  );
+  const [extraValues, setExtraValues] = useState(() => {
+    const vals = (safeExConfig.extraFields || []).reduce((acc, f) => { acc[f.key] = f.default ?? ""; return acc; }, {});
+    // SenseNova: use default size that API actually accepts
+    if (kind === "image" && providerId === "sensenova") {
+      vals.size = "1664x2496";
+    }
+    return vals;
+  });
   const [apiKey, setApiKey] = useState("");
   const [useTunnel, setUseTunnel] = useState(false);
   const [localEndpoint, setLocalEndpoint] = useState("");
@@ -1287,7 +1303,10 @@ function GenericExampleCard({ providerId, kind }) {
                 onChange={(e) => setExtraValues((s) => ({ ...s, [f.key]: e.target.value }))}
                 className="w-full px-3 py-1.5 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
               >
-                {(f.options || []).map((opt) => (
+                {(f.key === "size" && providerId === "sensenova"
+                  ? SENSENOVA_SIZE_OPTIONS
+                  : f.options || []
+                ).map((opt) => (
                   <option key={opt} value={opt}>{opt === "" ? "(default)" : opt}</option>
                 ))}
               </select>
