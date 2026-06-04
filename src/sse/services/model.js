@@ -31,6 +31,14 @@ export async function getModelInfo(modelStr) {
   const parsed = parseModel(modelStr);
 
   if (!parsed.isAlias) {
+    // Built-in provider already resolved → skip custom node matching
+    if (parsed.provider && parsed.provider === parsed.providerAlias) {
+      // providerAlias wasn't found in alias map, check provider nodes
+    } else {
+      // Built-in alias was resolved → return directly
+      return { provider: parsed.provider, model: parsed.model };
+    }
+
     // Always check provider-node prefix matching using original input first
     const openaiNodes = await getProviderNodes({ type: "openai-compatible" });
     const matchedOpenAI = openaiNodes.find((node) => node.prefix === parsed.providerAlias);

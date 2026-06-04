@@ -86,6 +86,8 @@ const ALIAS_TO_PROVIDER_ID = {
   topaz: "topaz",
   runway: "runwayml",
   runwayml: "runwayml",
+  sn: "sensenova",
+  sensenova: "sensenova",
   // Embedding/rerank
   jina: "jina-ai",
   "jina-ai": "jina-ai",
