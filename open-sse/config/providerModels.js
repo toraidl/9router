@@ -406,6 +406,7 @@ export const PROVIDER_MODELS = {
     { id: "Kimi-K2.5", name: "Kimi-K2.5" },
     { id: "GLM-4.7", name: "GLM-4.7" },
     { id: "DeepSeek-V3.2", name: "DeepSeek-V3.2" },
+    { id: "doubao-seedream-5.0-lite", name: "Doubao Seedream 5.0 Lite (Image)" },
   ],
   "cloudflare-ai": [
     { id: "@cf/meta/llama-3.2-1b-instruct", name: "Llama 3.2 1B Instruct" },
@@ -622,12 +623,15 @@ export const PROVIDER_MODELS = {
   // TTS entries are loaded from ttsModels.js via buildTtsProviderModels()
   ...buildTtsProviderModels(),
 
-  // Image providers
-  nanobanana: [
-    { id: "nanobanana-flash", name: "NanoBanana Flash", type: "image", params: ["n", "size"] },
-    { id: "nanobanana-pro", name: "NanoBanana Pro", type: "image", params: ["n", "size"] },
-  ],
-  sdwebui: [
+// Image providers
+nanobanana: [
+  { id: "nanobanana-flash", name: "NanoBanana Flash", type: "image", params: ["n", "size"] },
+  { id: "nanobanana-pro", name: "NanoBanana Pro", type: "image", params: ["n", "size"] },
+],
+sensenova: [
+  { id: "sensenova-u1-fast", name: "SenseNova U1 Fast (Infographic T2I)", type: "image", params: ["n", "size", "response_format"] },
+],
+sdwebui: [
     { id: "stable-diffusion-v1-5", name: "Stable Diffusion v1.5", type: "image", params: ["n", "size"] },
     { id: "sdxl-base-1.0", name: "SDXL Base 1.0", type: "image", params: ["n", "size"] },
   ],

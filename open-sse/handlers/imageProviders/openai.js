@@ -5,7 +5,8 @@ const ENDPOINTS = {
   minimax: "https://api.minimaxi.com/v1/images/generations",
   openrouter: "https://openrouter.ai/api/v1/images/generations",
   recraft: "https://external.api.recraft.ai/v1/images/generations",
-  xai: "https://api.x.ai/v1/images/generations",
+  "volcengine-ark-agent": "https://ark.cn-beijing.volces.com/api/plan/v3/images/generations",
+  sensenova: "https://token.sensenova.cn/v1/images/generations",
 };
 
 export default function createOpenAIAdapter(providerId) {
@@ -23,12 +24,6 @@ export default function createOpenAIAdapter(providerId) {
     },
     buildBody: (model, body) => {
       const { prompt, n = 1, size = "1024x1024", quality, style, response_format } = body;
-      // xAI only accepts prompt, model, n, response_format
-      if (providerId === "xai") {
-        const req = { model, prompt, n };
-        if (response_format) req.response_format = response_format;
-        return req;
-      }
       const req = { model, prompt, n, size };
       if (quality) req.quality = quality;
       if (style) req.style = style;
