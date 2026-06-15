@@ -7,6 +7,8 @@ const ENDPOINTS = {
   recraft: "https://external.api.recraft.ai/v1/images/generations",
   "volcengine-ark-agent": "https://ark.cn-beijing.volces.com/api/plan/v3/images/generations",
   sensenova: "https://token.sensenova.cn/v1/images/generations",
+  "vercel-ai-gateway": "https://ai-gateway.vercel.sh/v1/images/generations",
+  xai: "https://api.x.ai/v1/images/generations",
 };
 
 // Valid SenseNova sizes (from API response)

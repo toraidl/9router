@@ -19,6 +19,8 @@ const ADAPTERS = {
   recraft: createOpenAIAdapter("recraft"),
   "volcengine-ark-agent": createOpenAIAdapter("volcengine-ark-agent"),
   sensenova: createOpenAIAdapter("sensenova"),
+  "vercel-ai-gateway": createOpenAIAdapter("vercel-ai-gateway"),
+  xai: createOpenAIAdapter("xai"),
   gemini,
   codex,
   sdwebui,
