@@ -1,30 +1,11 @@
 import { PROVIDERS } from "./providers.js";
-import { buildTtsProviderModels } from "./ttsModels.js";
+import REGISTRY from "../providers/registry/index.js";
+// PROVIDER_MODELS now built from providers/registry (transport + models co-located)
+import { PROVIDER_MODELS } from "../providers/index.js";
+import { modelQuotaFamily, modelStrip, modelTargetFormat } from "../providers/models/schema.js";
+import { CODEX_REVIEW_SUFFIX } from "../providers/models/helpers.js";
 
-// Provider models - Single source of truth
-// Key = alias (cc, cx, gc, qw, if, ag, gh for OAuth; id for API Key)
-// Field "provider" for special cases (e.g. AntiGravity models that call different backends)
-
-const CODEX_REVIEW_SUFFIX = "-review";
-
-function withCodexReviewModels(models) {
-  return models.flatMap((model) => {
-    if ((model.type || "llm") !== "llm" || model.id.endsWith(CODEX_REVIEW_SUFFIX)) {
-      return [model];
-    }
-
-    return [
-      model,
-      {
-        ...model,
-        id: `${model.id}${CODEX_REVIEW_SUFFIX}`,
-        name: `${model.name} Review`,
-        upstreamModelId: model.upstreamModelId || model.id,
-        quotaFamily: "review",
-      },
-    ];
-  });
-}
+export { PROVIDER_MODELS };
 
 export const PROVIDER_MODELS = {
   // OAuth Providers (using alias)
@@ -37,7 +18,7 @@ export const PROVIDER_MODELS = {
     { id: "claude-sonnet-4-5-20250929", name: "Claude 4.5 Sonnet" },
     { id: "claude-haiku-4-5-20251001", name: "Claude 4.5 Haiku" },
   ],
-  cx: withCodexReviewModels([  // OpenAI Codex
+  cx: [  // OpenAI Codex
     { id: "gpt-5.5", name: "GPT 5.5" },
     { id: "gpt-5.4", name: "GPT 5.4" },
     { id: "gpt-5.4-mini", name: "GPT 5.4 Mini" },
@@ -52,7 +33,7 @@ export const PROVIDER_MODELS = {
     { id: "gpt-5.5-image", name: "GPT 5.5 Image", type: "image", capabilities: ["text2img", "edit"], params: ["size", "quality", "background", "image_detail", "output_format"] },
     { id: "gpt-5.4-image", name: "GPT 5.4 Image", type: "image", capabilities: ["text2img", "edit"], params: ["size", "quality", "background", "image_detail", "output_format"] },
     { id: "gpt-5.3-image", name: "GPT 5.3 Image", type: "image", capabilities: ["text2img", "edit"], params: ["size", "quality", "background", "image_detail", "output_format"] },
-  ]),
+  ],
   gc: [  // Gemini CLI
     { id: "gemini-3-flash-preview", name: "Gemini 3 Flash Preview" },
     { id: "gemini-3-pro-preview", name: "Gemini 3 Pro Preview" },
@@ -885,15 +866,14 @@ export function findModelName(aliasOrId, modelId) {
 export function getModelTargetFormat(aliasOrId, modelId) {
   const models = PROVIDER_MODELS[aliasOrId];
   if (!models) return null;
-  const found = models.find(m => m.id === modelId);
-  return found?.targetFormat || null;
+  return modelTargetFormat(models.find(m => m.id === modelId));
 }
 
 export function getModelType(aliasOrId, modelId) {
   const models = PROVIDER_MODELS[aliasOrId];
   if (!models) return null;
   const found = models.find(m => m.id === modelId);
-  return found?.type || null;
+  return found?.kind || found?.type || null;
 }
 
 export function getModelUpstreamId(aliasOrId, modelId) {
@@ -908,30 +888,14 @@ export function getModelUpstreamId(aliasOrId, modelId) {
 
 export function getModelQuotaFamily(aliasOrId, modelId) {
   const models = PROVIDER_MODELS[aliasOrId];
-  const found = models?.find(m => m.id === modelId);
-  return found?.quotaFamily || "normal";
+  return modelQuotaFamily(models?.find(m => m.id === modelId));
 }
 
-// OAuth providers that use short aliases (everything else: alias = id)
-const OAUTH_ALIASES = {
-  claude: "cc",
-  codex: "cx",
-  "gemini-cli": "gc",
-  qwen: "qw",
-  iflow: "if",
-  antigravity: "ag",
-  github: "gh",
-  kiro: "kr",
-  cursor: "cu",
-  "kimi-coding": "kmc",
-  kilocode: "kc",
-  cline: "cl",
-  opencode: "oc",
-  qoder: "qd",
-  "mimo-free": "mmf",
-  vertex: "vertex",
-  "vertex-partner": "vertex-partner",
-};
+// OAuth short aliases — derived from registry `alias` (single source). everything else: alias = id.
+// vertex/vertex-partner keep alias=id (kept via the `|| id` fallback in consumers).
+export const OAUTH_ALIASES = Object.fromEntries(
+  REGISTRY.filter(r => r.alias && r.alias !== r.id).map(r => [r.id, r.alias])
+);
 
 // Derived from PROVIDERS — no need to maintain manually
 export const PROVIDER_ID_TO_ALIAS = Object.fromEntries(
@@ -946,6 +910,5 @@ export function getModelsByProviderId(providerId) {
 // Get strip list for a model entry (explicit opt-in only)
 // Returns array of content types to strip, e.g. ["image", "audio"]
 export function getModelStrip(alias, modelId) {
-  const entry = PROVIDER_MODELS[alias]?.find(m => m.id === modelId);
-  return entry?.strip || [];
+  return modelStrip(PROVIDER_MODELS[alias]?.find(m => m.id === modelId));
 }
