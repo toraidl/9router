@@ -44,6 +44,9 @@ const readConfig = async () => {
     // If the config file exists but is unparseable (corrupted, exotic JSONC),
     // treat it as "no config" rather than throwing a 500 that the UI
     // misinterprets as "opencode not installed".
+    if (error instanceof SyntaxError && error.message.includes("JSON")) {
+      console.warn("[opencode-settings] Invalid JSON in opencode.json:", error.message);
+    }
     return null;
   }
 };

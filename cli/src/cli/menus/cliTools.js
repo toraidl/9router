@@ -513,6 +513,91 @@ async function showOpenCodeMenu(port, breadcrumb = []) {
   });
 }
 
+// ─── MiMo Code ────────────────────────────────────────────────────────────────
+
+async function buildMimoHeader() {
+  const result = await api.getCliToolSettings("mimo");
+  if (!result.success) return `  ${COLORS.red}Failed to load settings${COLORS.reset}`;
+
+  const { installed, has9Router, mimo } = result.data;
+  if (!installed) return `Status:   ${COLORS.red}✗ MiMo CLI not installed${COLORS.reset}`;
+
+  if (!has9Router) {
+    return [
+      `Status:   ${COLORS.red}✗ Not configured${COLORS.reset}`,
+      `${COLORS.dim}Run "Quick Setup" to configure${COLORS.reset}`
+    ].join("\n");
+  }
+
+  const lines = [`Status:   ${COLORS.green}✓ Configured${COLORS.reset}`];
+  if (mimo?.baseURL) lines.push(`Endpoint: ${COLORS.cyan}${mimo.baseURL}${COLORS.reset}`);
+  if (mimo?.activeModel) lines.push(`Active:   ${COLORS.dim}${mimo.activeModel}${COLORS.reset}`);
+  if (Array.isArray(mimo?.models) && mimo.models.length > 0) {
+    lines.push(`Models:   ${COLORS.dim}${mimo.models.join(", ")}${COLORS.reset}`);
+  }
+  return lines.join("\n");
+}
+
+async function mimoQuickSetup(port) {
+  const { endpoint } = await getEndpoint(port);
+  const apiKey = await getFirstApiKey();
+
+  if (!apiKey) {
+    showStatus("No API keys found. Create one in API Keys menu first.", "error");
+    await pause();
+    return;
+  }
+
+  const firstModel = await selectModelFromList("Select Active Model (MiMo)", "", { excludeCombos: true });
+  if (!firstModel) return;
+
+  const models = [firstModel];
+
+  while (true) {
+    const more = await confirm(`Add another model? (current: ${models.length})`);
+    if (!more) break;
+    const next = await selectModelFromList(`Add Model #${models.length + 1}`, models.join(", "), { excludeCombos: true });
+    if (!next) break;
+    if (!models.includes(next)) models.push(next);
+  }
+
+  let subagentModel = firstModel;
+  const wantSubagent = await confirm(`Set a different subagent model? (default: ${firstModel})`);
+  if (wantSubagent) {
+    const picked = await selectModelFromList("Select Subagent Model", firstModel, { excludeCombos: true });
+    if (picked) subagentModel = picked;
+  }
+
+  const result = await api.applyCliToolSettings("mimo", {
+    baseUrl: endpoint,
+    apiKey,
+    models,
+    activeModel: firstModel,
+    subagentModel,
+  });
+  showStatus(result.success ? "MiMo setup completed!" : `Failed: ${result.error}`, result.success ? "success" : "error");
+  await pause();
+}
+
+async function mimoReset() {
+  const result = await api.resetCliToolSettings("mimo");
+  showStatus(result.success ? "MiMo settings reset!" : `Failed: ${result.error}`, result.success ? "success" : "error");
+  await pause();
+}
+
+async function showMimoMenu(port, breadcrumb = []) {
+  await showMenuWithBack({
+    title: "🖥️ MiMo Code CLI Settings",
+    breadcrumb,
+    headerContent: buildMimoHeader,
+    refresh: async () => ({}),
+    items: [
+      { label: "⚡ Quick Setup", action: async () => { await mimoQuickSetup(port); return true; } },
+      { label: "Reset to Default", action: async () => { await mimoReset(); return true; } }
+    ]
+  });
+}
+
 // ─── Hermes Agent ─────────────────────────────────────────────────────────────
 
 async function buildHermesHeader() {
@@ -610,6 +695,10 @@ async function showCliToolsMenu(port, breadcrumb = []) {
       {
         label: "Hermes",
         action: async () => { await showHermesMenu(port, [...breadcrumb, "Hermes"]); return true; }
+      },
+      {
+        label: "MiMo Code",
+        action: async () => { await showMimoMenu(port, [...breadcrumb, "MiMo Code"]); return true; }
       }
     ]
   });

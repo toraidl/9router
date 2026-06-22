@@ -128,6 +128,14 @@ export const CLI_TOOLS = {
     description: "OpenCode AI Terminal Assistant",
     configType: "custom",
   },
+  mimo: {
+    id: "mimo",
+    name: "MiMo Code",
+    image: "/providers/opencode.png",
+    color: "#E87040",
+    description: "MiMo Code AI Terminal Assistant (OpenCode fork)",
+    configType: "custom",
+  },
   cowork: {
     id: "cowork",
     name: "Claude Cowork",
